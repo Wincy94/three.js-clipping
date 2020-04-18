@@ -1,0 +1,22 @@
+{
+  "name": "three.js-clipping",
+  "version": "1.0.0",
+  "description": "用 three.js 实现的三维地质模型剖切，以及剖面的补充",
+  "author": "screamsyk",
+  "license": "ISC",
+  "scripts": {
+    "start": "webpack-dev-server --progress --open  --inline",
+    "build": "rimraf ./dist && webpack --mode=development"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^5.1.1",
+    "css-loader": "^3.5.2",
+    "html-webpack-plugin": "^4.2.0",
+    "style-loader": "^1.1.4",
+    "ts-loader": "^7.0.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}
