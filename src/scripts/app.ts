@@ -1,4 +1,4 @@
-import { Scene, PerspectiveCamera, WebGLRenderer, AxesHelper, AmbientLight, DirectionalLight, Vector3, MOUSE, Group, BufferGeometry, BufferAttribute, MeshLambertMaterial, DoubleSide, Mesh, EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, AxesHelper, AmbientLight, DirectionalLight, Vector3, MOUSE, Group, BufferGeometry, BufferAttribute, MeshLambertMaterial, DoubleSide, Mesh, EdgesGeometry, LineSegments, LineBasicMaterial, Object3D } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import axios from 'axios';
 import { Lut } from './lut';
@@ -34,12 +34,15 @@ export class App {
         const directionLight = new DirectionalLight(0xffffff, 1);
         directionLight.position.set(200, 200, 200);
         this.scene.add(directionLight);
-        this.load();
+        this.load().then((obj: any) => {
+            this.clip = new Clip(obj, this.scene, this.camera, this.renderer, this.controls);
+            this.clip.open();
+        });
     }
 
     /**(4)初始化照相机 */
     initCamera() {
-        this.camera.position.set(500, 900, 500);
+        this.camera.position.set(0, 1500, 1000);
         this.camera.lookAt(new Vector3(0, 0, 0));
     }
 
@@ -86,61 +89,64 @@ export class App {
 
     /**(2)加载模型 */
     load() {
-        axios.request({ url: 'assets/geo.json' }).then((res) => {
-            console.log(res);
-            const gridList = res.data.GridList;
-            const group = new Group();
-            const lutColor = new Lut('rainbow', 512);
-            lutColor.setMin(0);
-            lutColor.setMax(4);
-            gridList.forEach((item: any) => {
-                var geometry = new BufferGeometry();
-                var vertices = new Float32Array(24);
-                var i = 0;
+        return new Promise((resolve) => {
+            axios.request({ url: 'assets/geo.json' }).then((res) => {
+                const group = new Group();
+                const lutColor = new Lut('rainbow', 512);
+                lutColor.setMin(0);
+                lutColor.setMax(4);
+                const gridList = res.data.GridList;
+                gridList.forEach((item: any) => {
+                    const geometry = new BufferGeometry();
 
-                item.GridPoints.forEach(function (point: any) {
-                    vertices[i * 3] = point.x;
-                    vertices[(i * 3) + 1] = point.y;
-                    vertices[(i * 3) + 2] = point.z;
-                    i++;
+                    // 指定立方体的八个顶点的 xyz
+                    const vertices = new Float32Array(24);
+                    let i = 0;
+                    item.GridPoints.forEach(function (point: any) {
+                        vertices[i * 3] = point.x;
+                        vertices[(i * 3) + 1] = point.y;
+                        vertices[(i * 3) + 2] = point.z;
+                        i++;
+                    });
+                    geometry.setAttribute('position', new BufferAttribute(vertices, 3));
+
+                    // 复用三角片的顶点
+                    const indexes = new Uint16Array([
+                        0, 1, 3,
+                        2, 1, 3,
+                        1, 0, 6,
+                        5, 6, 0,
+                        0, 3, 5,
+                        4, 5, 3,
+                        7, 4, 6,
+                        5, 4, 6,
+                        1, 2, 6,
+                        7, 6, 2,
+                        2, 3, 7,
+                        4, 3, 7
+                    ]);
+                    geometry.index = new BufferAttribute(indexes, 1);
+
+                    // 设定颜色
+                    var ZValue = item.GridPropertys[0].PropertyValue;
+                    var facecolor = lutColor.getColor(ZValue);
+                    var material = new MeshLambertMaterial({
+                        color: facecolor,
+                        side: DoubleSide
+                    });
+
+                    // 添加该立方体
+                    var mesh = new Mesh(geometry, material);
+                    var edges = new EdgesGeometry(geometry, 10);
+                    var line = new LineSegments(edges, new LineBasicMaterial({ color: 0xffffff, opacity: 0.3 }));
+                    // this.scene.add(line);
+                    group.add(mesh);
                 });
 
-                var indexes = new Uint16Array([
-                    0, 1, 3,
-                    2, 1, 3,
-                    1, 0, 6,
-                    5, 6, 0,
-                    0, 3, 5,
-                    4, 5, 3,
-                    7, 4, 6,
-                    5, 4, 6,
-                    1, 2, 6,
-                    7, 6, 2,
-                    2, 3, 7,
-                    4, 3, 7
-                ]);
-
-                var attribue = new BufferAttribute(vertices, 3);
-                geometry.attributes.position = attribue;
-                geometry.index = new BufferAttribute(indexes, 1);
-
-                var ZValue = item.GridPropertys[0].PropertyValue;
-                var facecolor = lutColor.getColor(ZValue);
-                var material = new MeshLambertMaterial({
-                    color: facecolor,
-                    side: DoubleSide
-                });
-
-                var mesh = new Mesh(geometry, material);
-                var edges = new EdgesGeometry(geometry, 10);
-                var line = new LineSegments(edges, new LineBasicMaterial({ color: 0xffffff, opacity: 0.3 }));
-                this.scene.add(line);
-                group.add(mesh);
+                this.scene.add(group);
+                resolve(group);
             });
-
-            this.scene.add(group);
         });
     }
-
 
 }

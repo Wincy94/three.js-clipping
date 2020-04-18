@@ -31,9 +31,9 @@ export class Clip {
     /**(3)开启剖切 */
     open() {
         this.initClipBox();
-        this.initCapBoxList();
+        // this.initCapBoxList();
         this.addMouseListener();
-        this.isOpen = true;
+        // this.isOpen = true;
     }
 
     /**(4)关闭剖切 */
@@ -216,9 +216,9 @@ export class Clip {
         this.uniforms.low.value.copy(this.low);
         this.uniforms.high.value.copy(this.high);
         const list: Array<any> = [];
-        const len = this.obj.children[0].children.length; // 类似的这个固定了，可能要改
+        const len = this.obj.children.length; // 类似的这个固定了，可能要改
         for (let i = 0; i < len; i++) {
-            const mesh: any = this.obj.children[0].children[i];
+            const mesh: any = this.obj.children[i];
             const item = {
                 capBox: new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial({ color: mesh.material.color || 0x00ff00 })),
                 capBoxScene: new Scene(),
@@ -228,15 +228,15 @@ export class Clip {
             item.capBoxScene.add(item.capBox);
 
             const backObj = this.obj.clone();
-            const backMesh = backObj.children[0].children[i] as Mesh;
+            const backMesh = backObj.children[i] as Mesh;
             backMesh.material = this.backMaterial;
-            backObj.children[0].children = [backMesh];
+            backObj.children = [backMesh];
             item.backScene.add(backObj);
 
             const frontObj = this.obj.clone();
-            const frontMesh = frontObj.children[0].children[i] as Mesh;
+            const frontMesh = frontObj.children[i] as Mesh;
             frontMesh.material = this.frontMaterial;
-            frontObj.children[0].children = [frontMesh];
+            frontObj.children = [frontMesh];
             item.frontScene.add(frontObj);
 
             list.push(item);
@@ -286,6 +286,24 @@ export class Clip {
         })
 
         gl.disable(gl.STENCIL_TEST);
+    }
+
+    /**(5)判断模型是否与剖切盒相交 */
+    private isIntersecting(mesh: any) {
+        const low = mesh.geometry.boundingBox.min;
+        const high = mesh.geometry.boundingBox.max;
+        if (
+            low.x >= this.low.x &&
+            low.y >= this.low.y &&
+            low.z >= this.low.z &&
+            high.x <= this.high.x &&
+            high.y <= this.high.y &&
+            high.z <= this.high.z
+        ) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 
@@ -356,7 +374,7 @@ export class Clip {
     private drag = {
         axis: '', // 轴线
         point: new Vector3(), // 起点
-        ground: new Mesh(new PlaneGeometry(1000, 1000), new MeshBasicMaterial({ colorWrite: false, depthWrite: false })),
+        ground: new Mesh(new PlaneGeometry(1000000, 1000000), new MeshBasicMaterial({ colorWrite: false, depthWrite: false })),
         start: (axis: string, point: Vector3) => {
             this.drag.axis = axis;
             this.drag.point = point;
