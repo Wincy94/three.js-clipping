@@ -11,10 +11,13 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: "[name].[hash].bundle.js"
     },
+    resolve: {
+        extensions: ['.ts', '.js', '.css']
+    },
     module: {
         rules: [
-            { test: '/\.css$/', use: ['style-loader', 'css-loader'] },
-            { test: '/\.ts$/', use: 'ts-loader' }
+            { test: /\.css$/, use: ['style-loader', 'css-loader'] },
+            { test: /\.ts$/, use: 'ts-loader' }
         ]
     },
     plugins: [
@@ -26,9 +29,6 @@ module.exports = {
             { from: './src/assets', to: 'assets' }
         ])
     ],
-    resolve: {
-        extensions: ['.ts', '.js', '.css']
-    },
     devtool: 'cheap-module-eval-source-map',
     devServer: {
         contentBase: path.join(__dirname, "dist"),
