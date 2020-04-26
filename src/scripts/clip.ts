@@ -94,7 +94,7 @@ export class Clip {
             new Plane(new Vector3(0, 0, 1), -this.low.z), // 后
         );
         this.obj.traverse((child: any) => {
-            if (child.type == 'Mesh') {
+            if (['Mesh', 'LineSegments'].includes(child.type)) {
                 child.material.clippingPlanes = this.planes;
             }
         });

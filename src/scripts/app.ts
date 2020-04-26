@@ -128,21 +128,20 @@ export class App {
                     geometry.index = new BufferAttribute(indexes, 1);
 
                     // 设定颜色
-                    var ZValue = item.GridPropertys[0].PropertyValue;
-                    var facecolor = lutColor.getColor(ZValue);
-                    var material = new MeshLambertMaterial({
+                    const ZValue = item.GridPropertys[0].PropertyValue;
+                    const facecolor = lutColor.getColor(ZValue);
+                    const material = new MeshLambertMaterial({
                         color: facecolor,
                         side: DoubleSide
                     });
 
                     // 添加该立方体
-                    var mesh = new Mesh(geometry, material);
-                    var edges = new EdgesGeometry(geometry, 10);
-                    var line = new LineSegments(edges, new LineBasicMaterial({ color: 0xffffff, opacity: 0.3 }));
-                    // this.scene.add(line);
+                    const mesh = new Mesh(geometry, material);
+                    const edges = new EdgesGeometry(geometry, 10);
+                    const line = new LineSegments(edges, new LineBasicMaterial({ color: 0xffffff, opacity: 0.3 }));
+                    group.add(line);
                     group.add(mesh);
                 });
-
                 this.scene.add(group);
                 resolve(group);
             });
